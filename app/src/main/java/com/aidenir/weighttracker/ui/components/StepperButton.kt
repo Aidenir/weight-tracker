@@ -14,6 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.drawBackdrop
@@ -28,23 +31,28 @@ fun StepperButton(
     backdrop: Backdrop,
     kind: StepperKind,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 64.dp
 ) {
+    val haptics = LocalHapticFeedback.current
     Box(
         modifier = modifier
-            .size(56.dp)
+            .size(size)
             .clip(CircleShape)
             .drawBackdrop(
                 backdrop = backdrop,
                 shape = { CircleShape },
                 effects = {
                     vibrancy()
-                    blur(16.dp.toPx())
-                    lens(14.dp.toPx(), 20.dp.toPx())
+                    blur(18.dp.toPx())
+                    lens(16.dp.toPx(), 24.dp.toPx())
                 },
-                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.18f)) }
+                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.22f)) }
             )
-            .clickable(onClick = onClick),
+            .clickable {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            },
         contentAlignment = Alignment.Center
     ) {
         Icon(

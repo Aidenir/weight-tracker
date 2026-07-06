@@ -1,6 +1,7 @@
 package com.aidenir.weighttracker.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
@@ -41,14 +42,11 @@ import com.aidenir.weighttracker.ui.WeightUiState
 import com.aidenir.weighttracker.ui.components.GlassCard
 import com.aidenir.weighttracker.ui.components.MetricPill
 import com.aidenir.weighttracker.ui.components.Trend
-import com.aidenir.weighttracker.ui.theme.BrandAccent
+import com.aidenir.weighttracker.ui.components.bottomActionClearance
 import com.aidenir.weighttracker.ui.theme.BrandPrimary
-import com.aidenir.weighttracker.ui.theme.DownGood
 import com.aidenir.weighttracker.ui.theme.TextMuted
 import com.aidenir.weighttracker.ui.theme.TextPrimary
 import com.aidenir.weighttracker.ui.theme.TextSecondary
-import com.aidenir.weighttracker.ui.theme.UpBad
-import com.kyant.backdrop.Backdrop
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -57,6 +55,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
+import com.kyant.backdrop.Backdrop
 
 @Composable
 fun GoalScreen(
@@ -67,7 +66,6 @@ fun GoalScreen(
 ) {
     val unit = state.unit
     val goal = state.settings?.goal
-    val current = state.metrics.current
 
     var targetInput by remember(goal?.targetKg, unit) {
         mutableStateOf(goal?.targetKg?.let { Units.format(it, unit) } ?: "")
@@ -78,127 +76,173 @@ fun GoalScreen(
         targetInput = goal?.targetKg?.let { Units.format(it, unit) } ?: ""
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(WindowInsets.systemBars.asPaddingValues())
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Goal",
-            color = TextPrimary,
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
-        )
+    val bottomClearance = bottomActionClearance()
 
-        GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
-            Column {
-                Text("Target weight", color = TextMuted, style = MaterialTheme.typography.labelMedium)
-                Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    BasicTextField(
-                        value = targetInput,
-                        onValueChange = { txt -> targetInput = txt.filter { c -> c.isDigit() || c == '.' || c == ',' } },
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            color = TextPrimary,
-                            fontSize = 44.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        cursorBrush = SolidColor(BrandPrimary),
-                        modifier = Modifier.width(140.dp)
-                    )
+    Box(modifier.fillMaxSize()) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                    start = 20.dp,
+                    end = 20.dp
+                ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Goal",
+                color = TextPrimary,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                val toGo = state.metrics.toGoalKg
+                MetricPill(
+                    backdrop = backdrop,
+                    label = "To goal",
+                    value = toGo?.let { "${Units.formatDelta(-it, unit)} ${Units.label(unit)}" } ?: "—",
+                    modifier = Modifier.weight(1f),
+                    trend = when {
+                        toGo == null -> Trend.NEUTRAL
+                        toGo > 0.05 -> Trend.UP
+                        toGo < -0.05 -> Trend.DOWN
+                        else -> Trend.NEUTRAL
+                    }
+                )
+                val pace = paceForecast(state)
+                MetricPill(
+                    backdrop = backdrop,
+                    label = "Weekly pace",
+                    value = pace?.let { "${Units.formatDelta(it, unit)} ${Units.label(unit)}/wk" } ?: "—",
+                    modifier = Modifier.weight(1f),
+                    trend = if (pace == null) Trend.NEUTRAL else if (pace < 0) Trend.DOWN else Trend.UP
+                )
+            }
+
+            val eta = etaMessage(state)
+            if (eta != null) {
+                GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
                     Text(
-                        Units.label(unit),
-                        color = TextSecondary,
+                        text = eta,
+                        color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-
-                Spacer(Modifier.height(16.dp))
-                Text("Deadline (YYYY-MM-DD, optional)", color = TextMuted, style = MaterialTheme.typography.labelMedium)
-                Spacer(Modifier.height(6.dp))
-                BasicTextField(
-                    value = deadlineInput,
-                    onValueChange = { deadlineInput = it.take(10) },
-                    singleLine = true,
-                    textStyle = TextStyle(color = TextPrimary, fontSize = 20.sp),
-                    cursorBrush = SolidColor(BrandPrimary),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(20.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = {
-                            val kg = targetInput.replace(',', '.').toDoubleOrNull()
-                                ?.let { Units.toKilograms(it, unit) }
-                            val deadline = deadlineInput.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
-                            onSave(kg, deadline)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = BrandPrimary,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Save goal", fontWeight = FontWeight.SemiBold)
-                    }
-                    TextButton(
-                        onClick = {
-                            targetInput = ""
-                            deadlineInput = ""
-                            onSave(null, null)
-                        },
-                        modifier = Modifier.height(52.dp)
-                    ) {
-                        Text("Clear", color = TextSecondary)
-                    }
-                }
             }
+
+            Spacer(Modifier.height(bottomClearance + 220.dp))
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            val toGo = state.metrics.toGoalKg
-            MetricPill(
-                backdrop = backdrop,
-                label = "To goal",
-                value = toGo?.let { "${Units.formatDelta(-it, unit)} ${Units.label(unit)}" } ?: "—",
-                modifier = Modifier.weight(1f),
-                trend = when {
-                    toGo == null -> Trend.NEUTRAL
-                    toGo > 0.05 -> Trend.UP
-                    toGo < -0.05 -> Trend.DOWN
-                    else -> Trend.NEUTRAL
-                }
-            )
-            val pace = paceForecast(state)
-            MetricPill(
-                backdrop = backdrop,
-                label = "Weekly pace",
-                value = pace?.let { "${Units.formatDelta(it, unit)} ${Units.label(unit)}/wk" } ?: "—",
-                modifier = Modifier.weight(1f),
-                trend = if (pace == null) Trend.NEUTRAL else if (pace < 0) Trend.DOWN else Trend.UP
-            )
-        }
+        // Sticky bottom input cluster
+        GoalInputCard(
+            backdrop = backdrop,
+            unit = unit,
+            targetInput = targetInput,
+            onTargetChange = { targetInput = it },
+            deadlineInput = deadlineInput,
+            onDeadlineChange = { deadlineInput = it },
+            onSave = {
+                val kg = targetInput.replace(',', '.').toDoubleOrNull()
+                    ?.let { Units.toKilograms(it, unit) }
+                val deadline = deadlineInput.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+                onSave(kg, deadline)
+            },
+            onClear = {
+                targetInput = ""
+                deadlineInput = ""
+                onSave(null, null)
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = bottomClearance)
+        )
+    }
+}
 
-        val eta = etaMessage(state)
-        if (eta != null) {
-            GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
+@Composable
+private fun GoalInputCard(
+    backdrop: Backdrop,
+    unit: com.aidenir.weighttracker.data.WeightUnit,
+    targetInput: String,
+    onTargetChange: (String) -> Unit,
+    deadlineInput: String,
+    onDeadlineChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    GlassCard(
+        backdrop = backdrop,
+        modifier = modifier,
+        contentPadding = 20.dp,
+        blurRadius = 30.dp,
+        tint = Color.White.copy(alpha = 0.14f)
+    ) {
+        Column {
+            Text("Target weight", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BasicTextField(
+                    value = targetInput,
+                    onValueChange = { txt ->
+                        onTargetChange(txt.filter { c -> c.isDigit() || c == '.' || c == ',' })
+                    },
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        color = TextPrimary,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    cursorBrush = SolidColor(BrandPrimary),
+                    modifier = Modifier.width(140.dp)
+                )
                 Text(
-                    text = eta,
-                    color = TextPrimary,
+                    Units.label(unit),
+                    color = TextSecondary,
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-        }
 
-        Spacer(Modifier.height(80.dp))
+            Spacer(Modifier.height(12.dp))
+            Text("Deadline (YYYY-MM-DD, optional)", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(6.dp))
+            BasicTextField(
+                value = deadlineInput,
+                onValueChange = { onDeadlineChange(it.take(10)) },
+                singleLine = true,
+                textStyle = TextStyle(color = TextPrimary, fontSize = 18.sp),
+                cursorBrush = SolidColor(BrandPrimary),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = onSave,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandPrimary,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Save goal", fontWeight = FontWeight.SemiBold)
+                }
+                TextButton(
+                    onClick = onClear,
+                    modifier = Modifier.height(52.dp)
+                ) {
+                    Text("Clear", color = TextSecondary)
+                }
+            }
+        }
     }
 }
 

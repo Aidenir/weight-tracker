@@ -47,6 +47,7 @@ import com.aidenir.weighttracker.data.ReminderConfig
 import com.aidenir.weighttracker.data.WeightUnit
 import com.aidenir.weighttracker.ui.WeightUiState
 import com.aidenir.weighttracker.ui.components.GlassCard
+import com.aidenir.weighttracker.ui.components.bottomActionClearance
 import com.aidenir.weighttracker.ui.theme.BrandPrimary
 import com.aidenir.weighttracker.ui.theme.TextMuted
 import com.aidenir.weighttracker.ui.theme.TextPrimary
@@ -64,13 +65,20 @@ fun SettingsScreen(
 ) {
     val settings = state.settings ?: return
     val context = LocalContext.current
+    val reminder = settings.reminder
+    val topInset = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    val bottomClearance = bottomActionClearance()
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(WindowInsets.systemBars.asPaddingValues())
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = topInset + 8.dp,
+                bottom = bottomClearance
+            ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -80,7 +88,14 @@ fun SettingsScreen(
             fontWeight = FontWeight.Bold
         )
 
-        // Units
+        // Home Assistant — configured once
+        HomeAssistantCard(
+            backdrop = backdrop,
+            config = settings.homeAssistant,
+            onSave = onHomeAssistantChange
+        )
+
+        // Units — occasional
         GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
             Column {
                 Text("Units", color = TextMuted, style = MaterialTheme.typography.labelMedium)
@@ -104,22 +119,10 @@ fun SettingsScreen(
             }
         }
 
-        // Reminder
-        val reminder = settings.reminder
+        // Reminder — the one you'll toggle often; pin it at the bottom of the
+        // list so it sits under your thumb.
         GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
             Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Morning reminder", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-                        Text("Fires at the time you set below.", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Switch(
-                        checked = reminder.enabled,
-                        onCheckedChange = { onReminderChange(reminder.copy(enabled = it)) },
-                        colors = SwitchDefaults.colors(checkedThumbColor = BrandPrimary)
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -142,8 +145,7 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Detect getting out of bed", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
@@ -159,17 +161,20 @@ fun SettingsScreen(
                         colors = SwitchDefaults.colors(checkedThumbColor = BrandPrimary)
                     )
                 }
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Morning reminder", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                        Text("Fires at the time above.", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Switch(
+                        checked = reminder.enabled,
+                        onCheckedChange = { onReminderChange(reminder.copy(enabled = it)) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = BrandPrimary)
+                    )
+                }
             }
         }
-
-        // Home Assistant
-        HomeAssistantCard(
-            backdrop = backdrop,
-            config = settings.homeAssistant,
-            onSave = onHomeAssistantChange
-        )
-
-        Spacer(Modifier.height(80.dp))
     }
 }
 
