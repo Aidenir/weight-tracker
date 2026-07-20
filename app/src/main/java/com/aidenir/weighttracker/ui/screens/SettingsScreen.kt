@@ -43,7 +43,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aidenir.weighttracker.data.Gender
 import com.aidenir.weighttracker.data.HomeAssistantConfig
+import com.aidenir.weighttracker.data.Profile
 import com.aidenir.weighttracker.data.ReminderConfig
 import com.aidenir.weighttracker.data.WeightUnit
 import com.aidenir.weighttracker.ui.WeightUiState
@@ -62,11 +64,13 @@ fun SettingsScreen(
     onUnitChange: (WeightUnit) -> Unit,
     onReminderChange: (ReminderConfig) -> Unit,
     onHomeAssistantChange: (HomeAssistantConfig) -> Unit,
+    onProfileChange: (com.aidenir.weighttracker.data.Profile) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val settings = state.settings ?: return
     val context = LocalContext.current
     val reminder = settings.reminder
+    val profile = settings.profile
     val topInset = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
     val bottomClearance = bottomActionClearance()
 
@@ -88,6 +92,13 @@ fun SettingsScreen(
             color = TextSecondary,
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.SemiBold
+        )
+
+        // Personal — powers the milestone ETA projections on the Goal tab.
+        PersonalCard(
+            backdrop = backdrop,
+            profile = profile,
+            onChange = onProfileChange
         )
 
         // Home Assistant — configured once
@@ -230,6 +241,84 @@ private fun HomeAssistantCard(
                 )
             ) {
                 Text("Save Home Assistant settings", fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonalCard(
+    backdrop: Backdrop,
+    profile: Profile,
+    onChange: (Profile) -> Unit
+) {
+    var ageText by remember(profile.ageYears) { mutableStateOf(profile.ageYears?.toString().orEmpty()) }
+    LaunchedEffect(profile.ageYears) { ageText = profile.ageYears?.toString().orEmpty() }
+
+    GlassCard(backdrop = backdrop, contentPadding = 20.dp) {
+        Column {
+            Text("Personal", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Used to project when you'll hit your milestones at a healthy pace.",
+                color = TextMuted,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Text("Age", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(4.dp))
+            BasicTextField(
+                value = ageText,
+                onValueChange = { txt ->
+                    val digits = txt.filter { it.isDigit() }.take(3)
+                    ageText = digits
+                    val age = digits.toIntOrNull()
+                    onChange(profile.copy(ageYears = age?.takeIf { it in 10..120 }))
+                },
+                singleLine = true,
+                textStyle = TextStyle(
+                    color = TextPrimary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                ),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                ),
+                cursorBrush = SolidColor(BrandPrimary),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                decorationBox = { inner ->
+                    if (ageText.isEmpty()) {
+                        Text("e.g. 32", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        inner()
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(12.dp))
+            Text("Gender", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(8.dp))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val options = listOf(
+                    Gender.FEMALE to "Female",
+                    Gender.MALE to "Male",
+                    Gender.UNSPECIFIED to "Prefer not to say"
+                )
+                options.forEachIndexed { index, (g, label) ->
+                    SegmentedButton(
+                        selected = profile.gender == g,
+                        onClick = { onChange(profile.copy(gender = g)) },
+                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = Color.White.copy(alpha = 0.14f),
+                            inactiveContainerColor = Color.Transparent,
+                            activeContentColor = TextPrimary,
+                            inactiveContentColor = TextSecondary
+                        )
+                    ) { Text(label, style = MaterialTheme.typography.labelMedium) }
+                }
             }
         }
     }

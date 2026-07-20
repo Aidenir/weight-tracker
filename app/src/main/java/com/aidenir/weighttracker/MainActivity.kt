@@ -113,14 +113,16 @@ private fun AppRoot(viewModel: WeightViewModel) {
                 Tab.Goal -> GoalScreen(
                     backdrop = backdrop,
                     state = state,
-                    onSave = viewModel::setGoal
+                    onSave = viewModel::setGoal,
+                    onMilestonesChange = viewModel::setMilestones
                 )
                 Tab.Settings -> SettingsScreen(
                     backdrop = backdrop,
                     state = state,
                     onUnitChange = viewModel::setUnit,
                     onReminderChange = viewModel::setReminder,
-                    onHomeAssistantChange = viewModel::setHomeAssistant
+                    onHomeAssistantChange = viewModel::setHomeAssistant,
+                    onProfileChange = viewModel::setProfile
                 )
             }
 

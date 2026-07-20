@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.aidenir.weighttracker.WeightApp
 import com.aidenir.weighttracker.data.HomeAssistantConfig
 import com.aidenir.weighttracker.data.Metrics
+import com.aidenir.weighttracker.data.Profile
 import com.aidenir.weighttracker.data.ReminderConfig
 import com.aidenir.weighttracker.data.Settings
 import com.aidenir.weighttracker.data.WeightEntry
@@ -83,6 +84,14 @@ class WeightViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setHomeAssistant(config: HomeAssistantConfig) = viewModelScope.launch {
         settingsRepo.setHomeAssistant(config)
+    }
+
+    fun setProfile(profile: Profile) = viewModelScope.launch {
+        settingsRepo.setProfile(profile)
+    }
+
+    fun setMilestones(kgs: List<Double>) = viewModelScope.launch {
+        settingsRepo.setMilestones(kgs)
     }
 
     fun scheduleReminderNow() = viewModelScope.launch {
