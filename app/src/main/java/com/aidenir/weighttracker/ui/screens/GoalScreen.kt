@@ -93,9 +93,9 @@ fun GoalScreen(
         ) {
             Text(
                 text = "Goal",
-                color = TextPrimary,
+                color = TextSecondary,
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -227,10 +227,10 @@ private fun GoalInputCard(
                     onClick = onSave,
                     modifier = Modifier
                         .weight(1f)
-                        .height(52.dp),
+                        .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandPrimary,
-                        contentColor = Color.White
+                        containerColor = Color.White.copy(alpha = 0.12f),
+                        contentColor = TextPrimary
                     )
                 ) {
                     Text("Save goal", fontWeight = FontWeight.SemiBold)

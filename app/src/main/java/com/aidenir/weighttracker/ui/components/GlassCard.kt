@@ -27,11 +27,11 @@ import com.kyant.backdrop.effects.vibrancy
 fun GlassCard(
     backdrop: Backdrop,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(28.dp),
-    tint: Color = Color.White.copy(alpha = 0.10f),
-    blurRadius: Dp = 24.dp,
-    lensRadius: Dp = 20.dp,
-    lensEdge: Dp = 40.dp,
+    shape: Shape = RoundedCornerShape(22.dp),
+    tint: Color = Color.White.copy(alpha = 0.06f),
+    blurRadius: Dp = 20.dp,
+    lensRadius: Dp = 16.dp,
+    lensEdge: Dp = 28.dp,
     contentPadding: Dp = 20.dp,
     content: @Composable () -> Unit
 ) {
@@ -58,9 +58,9 @@ fun GlassCard(
 fun GlassSurface(
     backdrop: Backdrop,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(28.dp),
-    tint: Color = Color.White.copy(alpha = 0.10f),
-    blurRadius: Dp = 24.dp,
+    shape: Shape = RoundedCornerShape(22.dp),
+    tint: Color = Color.White.copy(alpha = 0.06f),
+    blurRadius: Dp = 20.dp,
     content: @Composable () -> Unit
 ) {
     Box(
@@ -70,7 +70,7 @@ fun GlassSurface(
             effects = {
                 vibrancy()
                 blur(blurRadius.toPx())
-                lens(20.dp.toPx(), 40.dp.toPx())
+                lens(16.dp.toPx(), 28.dp.toPx())
             },
             onDrawSurface = { drawRect(tint) }
         )

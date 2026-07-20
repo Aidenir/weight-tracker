@@ -3,12 +3,15 @@ package com.aidenir.weighttracker.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aidenir.weighttracker.ui.theme.DownGood
 import com.aidenir.weighttracker.ui.theme.TextMuted
 import com.aidenir.weighttracker.ui.theme.TextPrimary
@@ -28,16 +31,18 @@ fun MetricPill(
     GlassCard(
         backdrop = backdrop,
         modifier = modifier,
-        blurRadius = 20.dp,
-        contentPadding = 16.dp
+        shape = RoundedCornerShape(18.dp),
+        blurRadius = 18.dp,
+        contentPadding = 14.dp
     ) {
         Column {
             Text(
-                text = label.uppercase(),
+                text = label,
                 color = TextMuted,
-                style = MaterialTheme.typography.labelMedium
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             val color = when (trend) {
                 Trend.UP -> UpBad
                 Trend.DOWN -> DownGood
@@ -46,7 +51,7 @@ fun MetricPill(
             Text(
                 text = value,
                 color = color,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.titleLarge
             )
         }
     }

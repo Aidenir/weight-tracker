@@ -58,9 +58,9 @@ fun HistoryScreen(
         item {
             Text(
                 text = "History",
-                color = TextPrimary,
+                color = TextSecondary,
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
         }
 

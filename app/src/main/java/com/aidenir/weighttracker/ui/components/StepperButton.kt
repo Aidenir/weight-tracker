@@ -47,7 +47,7 @@ fun StepperButton(
                     blur(18.dp.toPx())
                     lens(16.dp.toPx(), 24.dp.toPx())
                 },
-                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.22f)) }
+                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.10f)) }
             )
             .clickable {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -82,7 +82,7 @@ fun GlassIconButton(
                     blur(14.dp.toPx())
                     lens(10.dp.toPx(), 18.dp.toPx())
                 },
-                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.14f)) }
+                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.08f)) }
             )
             .background(Color.Transparent, CircleShape)
             .clickable(onClick = onClick),

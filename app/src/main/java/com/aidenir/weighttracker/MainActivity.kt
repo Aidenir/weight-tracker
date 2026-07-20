@@ -148,13 +148,13 @@ private fun GlassBottomBar(
             .padding(bottom = navPadding.calculateBottomPadding() + 12.dp, start = 20.dp, end = 20.dp)
             .drawBackdrop(
                 backdrop = backdrop,
-                shape = { RoundedCornerShape(32.dp) },
+                shape = { RoundedCornerShape(26.dp) },
                 effects = {
                     vibrancy()
-                    blur(28.dp.toPx())
-                    lens(20.dp.toPx(), 32.dp.toPx())
+                    blur(22.dp.toPx())
+                    lens(16.dp.toPx(), 28.dp.toPx())
                 },
-                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.12f)) }
+                onDrawSurface = { drawRect(Color.White.copy(alpha = 0.07f)) }
             )
     ) {
         NavigationBar(
@@ -173,7 +173,7 @@ private fun GlassBottomBar(
                         selectedTextColor = TextPrimary,
                         unselectedIconColor = TextMuted,
                         unselectedTextColor = TextMuted,
-                        indicatorColor = BrandPrimary.copy(alpha = 0.35f)
+                        indicatorColor = Color.White.copy(alpha = 0.12f)
                     )
                 )
             }

@@ -83,9 +83,9 @@ fun SettingsScreen(
     ) {
         Text(
             text = "Settings",
-            color = TextPrimary,
+            color = TextSecondary,
             style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold
         )
 
         // Home Assistant — configured once
@@ -108,8 +108,8 @@ fun SettingsScreen(
                             onClick = { onUnitChange(unit) },
                             shape = SegmentedButtonDefaults.itemShape(index, options.size),
                             colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = BrandPrimary.copy(alpha = 0.4f),
-                                inactiveContainerColor = Color.White.copy(alpha = 0.06f),
+                                activeContainerColor = Color.White.copy(alpha = 0.14f),
+                                inactiveContainerColor = Color.Transparent,
                                 activeContentColor = TextPrimary,
                                 inactiveContentColor = TextSecondary
                             )
@@ -221,10 +221,10 @@ private fun HomeAssistantCard(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(46.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandPrimary,
-                    contentColor = Color.White
+                    containerColor = Color.White.copy(alpha = 0.12f),
+                    contentColor = TextPrimary
                 )
             ) {
                 Text("Save Home Assistant settings", fontWeight = FontWeight.SemiBold)

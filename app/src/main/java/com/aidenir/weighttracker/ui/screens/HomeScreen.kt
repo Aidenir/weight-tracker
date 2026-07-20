@@ -88,25 +88,30 @@ fun HomeScreen(
         ) {
             Text(
                 text = "Today",
-                color = TextMuted,
-                style = MaterialTheme.typography.labelLarge
+                color = TextSecondary,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.SemiBold
             )
 
-            GlassCard(backdrop = backdrop, contentPadding = 8.dp) {
-                Column(Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = "Progress",
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    WeightChart(
-                        entries = state.entries,
-                        unit = unit,
-                        goalKg = state.settings?.goal?.targetKg,
-                        height = 180.dp
-                    )
+            // Skip the chart card entirely when there's nothing to plot —
+            // an empty hero saying "not enough data yet" reads as tacky.
+            if (state.entries.size >= 2) {
+                GlassCard(backdrop = backdrop, contentPadding = 8.dp) {
+                    Column(Modifier.padding(vertical = 8.dp)) {
+                        Text(
+                            text = "Progress",
+                            color = TextSecondary,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        WeightChart(
+                            entries = state.entries,
+                            unit = unit,
+                            goalKg = state.settings?.goal?.targetKg,
+                            height = 180.dp
+                        )
+                    }
                 }
             }
 
@@ -153,8 +158,8 @@ private fun WeighInCard(
         backdrop = backdrop,
         modifier = modifier,
         contentPadding = 20.dp,
-        blurRadius = 30.dp,
-        tint = Color.White.copy(alpha = 0.14f)
+        blurRadius = 24.dp,
+        tint = Color.White.copy(alpha = 0.09f)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val yLabel = state.yesterdayKg?.let {
@@ -206,12 +211,12 @@ private fun WeighInCard(
             Button(
                 onClick = onSave,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandPrimary,
-                    contentColor = Color.White
+                    containerColor = Color.White.copy(alpha = 0.14f),
+                    contentColor = TextPrimary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(52.dp)
             ) {
                 Icon(Icons.Rounded.Check, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
