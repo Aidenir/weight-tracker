@@ -15,19 +15,23 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val reminder = settings.reminder
         if (!reminder.enabled) return Result.success()
 
-        // Reschedule for tomorrow first — always keep the chain going.
-        ReminderScheduler(applicationContext).reschedule(reminder)
-
-        val already = app.container.weightRepository.forDate(
-            com.aidenir.weighttracker.data.WeightRepository.today()
-        )
-        if (already != null) return Result.success()
-
-        if (reminder.useMotion) {
-            OutOfBedService.start(applicationContext)
-        } else {
-            ReminderNotifier.show(applicationContext)
+        try {
+            val already = app.container.weightRepository.forDate(
+                com.aidenir.weighttracker.data.WeightRepository.today()
+            )
+            if (already == null) {
+                if (reminder.useMotion) {
+                    OutOfBedService.start(applicationContext)
+                } else {
+                    ReminderNotifier.show(applicationContext)
+                }
+            }
+            return Result.success()
+        } finally {
+            // Enqueueing under our own unique-work name with REPLACE cancels
+            // the running instance — do it after the fire so we don't cut
+            // our own coroutine short before show() runs.
+            ReminderScheduler(applicationContext).reschedule(reminder)
         }
-        return Result.success()
     }
 }
